@@ -1,0 +1,82 @@
+[profile.default]
+src = "src"
+out = "out"
+# solc pinned by the exact `pragma solidity 0.8.26;` in v4-core PoolManager.sol and
+# v4-periphery PositionManager.sol (both compiled from source in tests). Do not bump
+# without bumping the v4-periphery submodule. 0.8.26 predates the 0.8.28-0.8.33
+# transient-storage clearing bug window.
+solc_version = "0.8.26"
+evm_version = "cancun"
+optimizer = true
+via_ir = false
+optimizer-runs = 300
+dynamic_test_linking = false
+bytecode_hash = "ipfs"
+libs = ["lib"]
+# Test-only relaxation: PoolManager compiled from source exceeds 24KB, and test/script
+# harnesses embed many creation codes transitively (deploy script inside a test contract).
+# The CI size gate checks only our own src contracts via script/check_sizes.sh.
+code_size_limit = 393216
+# TargetContract is the Medusa property-fuzz harness; V4InfraSmokeTest is the phase-3
+# infra de-risk suite and CurveConservationRegression a thin self-skipping regression.
+# All are driven by `medusa fuzz` or dedicated CI jobs (profile.invariant overrides this
+# filter) — never by a plain `forge test`/`forge snapshot`. Excluding them here keeps
+# them out of the gas-snapshot/gas-diff jobs (profile.ci inherits this filter), where a
+# self-skipping test would otherwise emit an unmatched `(gas: 0)` entry and fail
+# `forge snapshot --check`.
+no_match_contract = "TargetContract|V4InfraSmokeTest|CurveConservationRegression|TokenFactorySupplyMarketCapInvariant"
+no_match_path = "test/fork/**"
+
+[profile.ci]
+# Pin fuzz.seed so gas-snapshot check is deterministic across runs. Without a
+# fixed seed, forge picks random inputs each run, causing fuzz-test medians
+# to drift 5-25% between baseline and check — which blows past any realistic
+# tolerance and makes the gate flaky.
+fuzz = { runs = 1024, seed = "0x01" }
+verbosity = 3
+
+# Profile used by the `forge-invariant` CI job (and `FOUNDRY_PROFILE=invariant forge test`
+# locally). The sentinel `no_match_contract` regex matches nothing, so TargetContract is
+# included (unlike the default profile which excludes it).
+#
+# `fail_on_revert = true` is safe here because every handler uses try/catch + selector
+# allowlist. A top-level revert can only come from a handler/catch/invariant-body bug,
+# which we want surfaced loudly.
+[profile.invariant]
+no_match_contract = "^INVARIANT_SENTINEL$"
+verbosity = 3
+invariant = { runs = 256, depth = 128, fail_on_revert = true, call_override = false }
+fuzz = { runs = 256 }
+
+# Profile for the fork-smoke job: re-includes test/fork/** (excluded by default) and
+# nothing else. Needs RPC_URL (+ pinned FORK_BLOCK_NUMBER) in the environment.
+[profile.fork]
+no_match_path = "test/__none__/**"
+no_match_contract = "TargetContract|V4InfraSmokeTest|CurveConservationRegression|TokenFactorySupplyMarketCapInvariant"
+verbosity = 3
+
+[rpc_endpoints]
+  robinhood = "${RPC_URL}"
+  arbitrum-sepolia = "${RPC_URL}"
+  sepolia = "${RPC_URL}"
+
+# Etherscan v2: keep only `key` + `chain`. Setting a custom `url` (…/v2/api) breaks
+# verification with "Missing chainid" — the built-in chain mapping must be used.
+[etherscan]
+  arbitrum-sepolia = {key = "${ETHERSCAN_API_KEY}", chain = 421614}
+  sepolia = {key = "${ETHERSCAN_API_KEY}", chain = 11155111}
+
+[lint]
+  lint_on_build = false
+
+[fmt]
+  bracket_spacing = false
+  int_types = "long"
+  line_length = 120
+  multiline_func_header = "attributes_first"
+  number_underscore = "thousands"
+  quote_style = "double"
+  single_line_statement_blocks = "preserve"
+  sort_imports = true
+  tab_width = 4
+  wrap_comments = false
