@@ -39,9 +39,9 @@ Throughout his career, Sammy has collaborated with numerous protocols to strengt
 
 - **Audited Version (v1.0)**: [`e6571bd71ad0c545c0c6c72c96791a4c9fc7915c`](https://github.com/FrontierFun/factory-hook/commit/e6571bd71ad0c545c0c6c72c96791a4c9fc7915c)
 
-- **Fix Review Version (v1.1, Current Head)**: [`a269603d40991ff83cc9da427c961a4bb0c83341`](https://github.com/FrontierFun/factory-hook/commit/a269603d40991ff83cc9da427c961a4bb0c83341)
+- **Fix Review Version (v1.1)**: [`a269603d40991ff83cc9da427c961a4bb0c83341`](https://github.com/FrontierFun/factory-hook/commit/a269603d40991ff83cc9da427c961a4bb0c83341)
 
-- **Final Commit**: NA
+- **Final Commit**: [`a269603d40991ff83cc9da427c961a4bb0c83341`](https://github.com/FrontierFun/factory-hook/commit/a269603d40991ff83cc9da427c961a4bb0c83341)
 
 ### Files in Scope
 

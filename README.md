@@ -7,14 +7,16 @@ else installed.
 
 | Folder | Hook version |
 |---|---|
-| `v1.0/` | The hook deployed on Robinhood Chain (4663), at `0xb31780AAd49D3Cc7Dd6E03E9e462606F0A5A30Cc`. Live liquidity still runs on it. |
-| `v1.1/` | v1.0 patched after audit: the L-04 fix, plus a change that pins each pool to the hook that registered it. |
+| `v1.0/` | Deployed on Robinhood Chain (4663) at `0xb31780AAd49D3Cc7Dd6E03E9e462606F0A5A30Cc`. The pools created on it are still live and still trading on the app. |
+| `v1.1/` | v1.0 patched after audit: the L-04 fix, plus a change that pins each pool to the hook that registered it. Deployed on Robinhood Chain (4663) at `0xee588bCF2bd3e658f5160489f4199d1851BBf0Cc`. Every new pool is created on it. |
 
-Both ship because both matter: v1.1 is the version to read, v1.0 is the version pools are trading
-against today. `v1.0` and `v1.1` are labels for these two hook versions here, not version numbers
-used anywhere else.
+Both ship because both are running: v1.1 takes every pool created from now on, and v1.0 keeps the
+pools created before it. `v1.0` and `v1.1` are labels for these two hook versions here, not version
+numbers used anywhere else.
 
-### v1.0 is the deployed bytecode — verified
+`audits/sammyaudits-report.md` is the audit report, cut to the findings that concern the hook.
+
+### The deployed addresses run this source — verified
 
 `./verify-v1.0-onchain.sh` builds `v1.0`, fetches the runtime code of
 `0xb31780AAd49D3Cc7Dd6E03E9e462606F0A5A30Cc` over `https://rpc.mainnet.chain.robinhood.com`
@@ -30,6 +32,15 @@ environment: the same sources give three different hashes when built with the ne
 `auto_detect_remappings = false`, and the deployer's environment was a fourth. No executable
 difference can hide behind an identical code section, so the metadata hash is documented rather
 than reproduced.
+
+`./verify-v1.1-onchain.sh` does the same for `v1.1` against
+`0xee588bCF2bd3e658f5160489f4199d1851BBf0Cc`, with the same metadata-hash caveat. Result at block
+50 147 036: **all 19 799 executable bytes identical**. It then rebuilds the initcode the hook was
+deployed with (the creation bytecode, its metadata hash taken from the on-chain runtime, followed by
+the four constructor arguments: pool manager `0x8366a39C…`, coin factory `0xe3A826C0…`, WETH
+`0x0Bd7D308…`, staking vault factory `0xFB443f5c…`) and derives the CREATE2 address from it: with
+salt `0x…1779` through the deterministic deployer proxy `0x4e59b44847b379578588920cA78FbF26c0B4956C`
+it comes out at the deployed address, exactly.
 
 ### What changed between the two
 
